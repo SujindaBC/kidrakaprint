@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
-const AdComponent = ({ className = '' }) => {
-  const adRef = useRef(null);
-
+const AdComponent = () => {
   useEffect(() => {
     try {
-      const adsbygoogle = window.adsbygoogle || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const adsbygoogle = (window as any).adsbygoogle = (window as any).adsbygoogle || [];
       adsbygoogle.push({});
     } catch (err) {
       console.error('AdSense error:', err);
@@ -15,21 +14,14 @@ const AdComponent = ({ className = '' }) => {
   }, []);
 
   return (
-    <div className={`${className} overflow-hidden`}>
-      <ins
-        ref={adRef}
-        className="adsbygoogle"
-        style={{
-          display: 'block',
-          width: '100%',
-          minHeight: '100px',
-        }}
-        data-ad-client="ca-pub-6272836017246600"
-        data-ad-slot="5054851327"
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
-    </div>
+    <ins 
+      className="adsbygoogle"
+      style={{ display: "block" }}
+      data-ad-client="ca-pub-6272836017246600"
+      data-ad-slot="5054851327"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
   );
 };
 

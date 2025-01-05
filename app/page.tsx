@@ -1,16 +1,21 @@
 'use client';
-import { useState } from 'react'  // Remove unused useEffect
+import { useState } from 'react'
 import FileUpload from '@/components/print/FileUpload'
 import PriceCalculator from '@/components/print/PriceCalculator'
 import ConfigurationPanel from '@/components/print/ConfigurationPanel'
 
+// Shared FileInfo interface that matches across components
+export interface FileInfo {
+  name: string;
+  size: number;
+  type: string;
+  pageCount: number;  // Made required
+  colorPages?: number;
+  bwPages?: number;
+}
+
 export default function Home() {
-  const [fileInfo, setFileInfo] = useState<{
-    // Replace 'any' with a more specific type
-    pages?: number;
-    size?: string;
-    // Add other expected properties
-  } | null>(null);
+  const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
   const [showConfig, setShowConfig] = useState(false);
 
   return (

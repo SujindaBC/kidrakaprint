@@ -1,158 +1,101 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 
-const ConfigurationPanel = () => {
-  const [paperTypes, setPaperTypes] = useState([
-    { name: 'กระดาษธรรมดา A4', cost: 0.30 },
-    { name: 'กระดาษโฟโต้ 100+ gsm', cost: 6 },
-    { name: 'กระดาษโฟโต้ 200+ gsm', cost: 7 },
-    { name: 'กระดาษการ์ดขาว', cost: 3 },
-    { name: 'กระดาษสี', cost: 1.5 }
+// Define an interface for the paper type
+interface PaperType {
+  name: string;
+  color: string;
+  cost: number;
+}
+
+const ConfigurationPanel: React.FC = () => {
+  const [paperTypes, setPaperTypes] = useState<PaperType[]>([
+    { name: 'กระดาษธรรมดา A4', color: '#FFFFFF', cost: 0.27 },
+    { name: 'กระดาษพรีเมียม', color: '#F0F0F0', cost: 0.7 },
   ]);
 
-  const [volumePricing, setVolumePricing] = useState({
-    bw: {
-      1: 3.0,
-      10: 2.8,
-      20: 2.5,
-      50: 2.2,
-      100: 2.0
-    },
-    color: {
-      1: 5.0,
-      10: 4.5,
-      20: 4.0,
-      50: 3.5,
-      100: 3.0
-    }
-  });
-
-  const [editingMode, setEditingMode] = useState(false);
-
-  const handleSave = () => {
-    localStorage.setItem('printPricing', JSON.stringify({
-      paperTypes,
-      volumePricing
-    }));
-    setEditingMode(false);
-  };
-
-  const handlePaperTypeChange = (index, field, value) => {
+  // Add explicit type annotations to the function parameters
+  const handlePaperTypeChange = (
+    index: number, 
+    field: keyof PaperType, 
+    value: string | number
+  ) => {
     const newPaperTypes = [...paperTypes];
     newPaperTypes[index] = {
       ...newPaperTypes[index],
-      [field]: field === 'cost' ? parseFloat(value) : value
+      [field]: value
     };
     setPaperTypes(newPaperTypes);
   };
 
-  const handleVolumeChange = (type, pages, value) => {
-    setVolumePricing({
-      ...volumePricing,
-      [type]: {
-        ...volumePricing[type],
-        [pages]: parseFloat(value)
-      }
-    });
+  const addPaperType = () => {
+    setPaperTypes([
+      ...paperTypes,
+      { name: 'กระดาษใหม่', color: '#000000', cost: 0 }
+    ]);
+  };
+
+  const removePaperType = (index: number) => {
+    if (paperTypes.length > 1) {
+      const newPaperTypes = paperTypes.filter((_, i) => i !== index);
+      setPaperTypes(newPaperTypes);
+    }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Settings className="h-6 w-6 text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-900">ตั้งค่าราคา</h2>
-        </div>
-        <button
-          onClick={() => editingMode ? handleSave() : setEditingMode(true)}
-          className={`px-4 py-2 rounded ${
-            editingMode 
-              ? 'bg-blue-600 text-white hover:bg-blue-700 text-gray-900' 
-              : 'border border-gray-300 hover:bg-gray-50 text-gray-900'
-          }`}
-        >
-          {editingMode ? 'บันทึก' : 'แก้ไข'}
-        </button>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Wrench className="h-6 w-6 text-blue-600" />
+        <h2 className="text-xl font-bold text-gray-900">ตั้งค่ากระดาษ</h2>
       </div>
 
-      <div className="space-y-8">
-        {/* ประเภทกระดาษ */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ประเภทกระดาษ</h3>
-          <div className="space-y-3">
-            {paperTypes.map((paper, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  value={paper.name}
-                  onChange={(e) => handlePaperTypeChange(index, 'name', e.target.value)}
-                  disabled={!editingMode}
-                  className="p-2 border rounded text-gray-900 disabled:bg-gray-50"
-                />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={paper.cost}
-                    onChange={(e) => handlePaperTypeChange(index, 'cost', e.target.value)}
-                    disabled={!editingMode}
-                    step="0.01"
-                    className="p-2 border rounded w-24 text-gray-900 disabled:bg-gray-50"
-                  />
-                  <span className="text-gray-600">บาท/แผ่น</span>
-                </div>
-              </div>
-            ))}
+      <div className="space-y-4">
+        {paperTypes.map((paperType, index) => (
+          <div 
+            key={index} 
+            className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-center"
+          >
+            <input
+              type="text"
+              value={paperType.name}
+              onChange={(e) => handlePaperTypeChange(index, 'name', e.target.value)}
+              className="w-full p-2 border-2 border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              placeholder="ชื่อประเภทกระดาษ"
+            />
+            <input
+              type="color"
+              value={paperType.color}
+              onChange={(e) => handlePaperTypeChange(index, 'color', e.target.value)}
+              className="w-full p-1 border-2 border-gray-300 rounded"
+            />
+            <input
+              type="number"
+              step="0.01"
+              value={paperType.cost}
+              onChange={(e) => handlePaperTypeChange(index, 'cost', parseFloat(e.target.value))}
+              className="w-full p-2 border-2 border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              placeholder="ราคา"
+            />
+            {paperTypes.length > 1 && (
+              <button
+                onClick={() => removePaperType(index)}
+                className="text-red-500 hover:bg-red-50 p-2 rounded transition-colors"
+              >
+                ลบ
+              </button>
+            )}
           </div>
-        </div>
+        ))}
 
-        {/* ราคาตามจำนวน */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ราคาตามจำนวน</h3>
-          <div className="grid grid-cols-2 gap-8">
-            {/* ขาว-ดำ */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">ขาว-ดำ</h4>
-              <div className="space-y-3">
-                {Object.entries(volumePricing.bw).map(([pages, price]) => (
-                  <div key={pages} className="flex items-center gap-2">
-                    <span className="w-16 text-gray-600">{pages}+ หน้า:</span>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => handleVolumeChange('bw', pages, e.target.value)}
-                      disabled={!editingMode}
-                      step="0.1"
-                      className="p-2 border rounded w-24 text-gray-900 disabled:bg-gray-50"
-                    />
-                    <span className="text-gray-600">บาท/หน้า</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* สี */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">สี</h4>
-              <div className="space-y-3">
-                {Object.entries(volumePricing.color).map(([pages, price]) => (
-                  <div key={pages} className="flex items-center gap-2">
-                    <span className="w-16 text-gray-600">{pages}+ หน้า:</span>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => handleVolumeChange('color', pages, e.target.value)}
-                      disabled={!editingMode}
-                      step="0.1"
-                      className="p-2 border rounded w-24 text-gray-900 disabled:bg-gray-50"
-                    />
-                    <span className="text-gray-600">บาท/หน้า</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="mt-4">
+          <button
+            onClick={addPaperType}
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+          >
+            เพิ่มประเภทกระดาษ
+          </button>
         </div>
       </div>
     </div>

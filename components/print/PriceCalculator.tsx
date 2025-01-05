@@ -100,19 +100,19 @@ const PriceCalculator: React.FC<{ fileInfo: FileInfo }> = ({ fileInfo }) => {
         const totalPages = fileInfo.pageCount * orderDetails.copies;
         const paperCost = defaultConfig.paperTypes[orderDetails.paperType].cost;
 
-        // Calculate effective pages for double-sided printing
+        // Use effectivePages in the calculation if double-sided
         const effectivePages = orderDetails.doubleSided
-            ? Math.ceil(fileInfo.pageCount / 2)
-            : fileInfo.pageCount;
+            ? Math.ceil(fileInfo.pageCount / 2) * orderDetails.copies
+            : fileInfo.pageCount * orderDetails.copies;
 
         // Default to BW if color info is not available
         const colorPages = fileInfo.colorPages || 0;
         const bwPages = fileInfo.bwPages || fileInfo.pageCount;
 
-        // Calculate printing costs
+        // Calculate printing costs using effectivePages
         const bwPrintingCost = bwPages * getBasePrice(bwPages * orderDetails.copies, 'bw') * orderDetails.copies;
         const colorPrintingCost = colorPages * getBasePrice(colorPages * orderDetails.copies, 'color') * orderDetails.copies;
-        const totalPaperCost = fileInfo.pageCount * paperCost * orderDetails.copies;
+        const totalPaperCost = effectivePages * paperCost;
         const totalPrintingCost = bwPrintingCost + colorPrintingCost;
 
         return {

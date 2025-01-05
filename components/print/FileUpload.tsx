@@ -1,159 +1,95 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Upload, FileText } from 'lucide-react';
+import { FileInfo } from '@/app/page';
 
-const FileUpload = ({ onFileAnalyzed }) => {
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState(null);
-  const [fileInfo, setFileInfo] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
+interface FileUploadProps {
+  onFileAnalyzed: (fileInfo: FileInfo | null) => void;
+}
 
-  const handleFile = async (file) => {
-    if (file) {
-      setAnalyzing(true);
-      try {
-        // For demo, we'll just count pages as 10
-        const info = {
-          name: file.name,
-          type: file.type === 'application/pdf' ? 'PDF' : 'image',
-          size: (file.size / (1024 * 1024)).toFixed(2), // MB
-          pageCount: 10,
-          colorPages: 0,
-          bwPages: 10
-        };
-        setFileInfo(info);
-        onFileAnalyzed(info);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setAnalyzing(false);
+const FileUpload: React.FC<FileUploadProps> = ({ onFileAnalyzed }) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const analyzeFile = useCallback(async (file: File) => {
+    setIsAnalyzing(true);
+    setUploadError(null);
+
+    try {
+      // Basic file analysis with default pageCount
+      const fileAnalysis: FileInfo = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        pageCount: 1,  // Default to 1, update with actual page count
+        colorPages: 0,
+        bwPages: 1
+      };
+
+      // Additional analysis for PDFs or specific file types
+      if (file.type === 'application/pdf') {
+        // You might want to use a PDF.js or other library to count pages
+        // This is a placeholder - you'll need to implement actual PDF page counting
+        // fileAnalysis.pageCount = await countPdfPages(file);
       }
+
+      onFileAnalyzed(fileAnalysis);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setUploadError(errorMessage);
+      onFileAnalyzed(null);
+    } finally {
+      setIsAnalyzing(false);
     }
-  };
+  }, [onFileAnalyzed]);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
-      await handleFile(file);
-    }
-  };
-
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      await handleFile(file);
+      analyzeFile(file);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Upload className="h-6 w-6 text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-900">อัพโหลดเอกสาร</h2>
-        </div>
-        {fileInfo && (
-          <button
-            onClick={() => {
-              setFileInfo(null);
-              onFileAnalyzed(null);
-            }}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            อัพโหลดไฟล์ใหม่
-          </button>
-        )}
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Upload className="h-6 w-6 text-blue-600" />
+        <h2 className="text-xl font-bold text-gray-900">อัปโหลดไฟล์</h2>
       </div>
 
-      {!fileInfo ? (
-        <div
-          className={`border-2 ${
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-dashed border-gray-300'
-          } rounded-lg p-8 text-center transition-colors duration-200`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="max-w-sm mx-auto">
-            <input
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleFileChange}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer"
-            >
-              <FileText className="h-16 w-16 mx-auto mb-4 text-blue-500" />
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                คลิกเพื่ออัพโหลดหรือลากไฟล์มาวาง
+      <div className="space-y-4">
+        <div className="flex items-center justify-center w-full">
+          <label 
+            htmlFor="file-upload" 
+            className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+          >
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <FileText className="h-10 w-10 text-gray-400 mb-4" />
+              <p className="mb-2 text-sm text-gray-500">
+                {isAnalyzing 
+                  ? 'กำลังวิเคราะห์ไฟล์...' 
+                  : 'คลิกเพื่ออัปโหลดหรือลากไฟล์มาวางที่นี่'}
               </p>
-              <p className="text-sm text-gray-500">
-                รองรับไฟล์ PDF, JPG, PNG
-              </p>
-            </label>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-            <h3 className="font-medium text-gray-900 mb-2">ข้อมูลเอกสาร</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-600">ชื่อไฟล์</p>
-                <p className="text-gray-900 font-medium">{fileInfo.name}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">ประเภท</p>
-                <p className="text-gray-900 font-medium">{fileInfo.type}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">ขนาด</p>
-                <p className="text-gray-900 font-medium">{fileInfo.size} MB</p>
-              </div>
-              <div>
-                <p className="text-gray-600">จำนวนหน้าทั้งหมด</p>
-                <p className="text-gray-900 font-medium">{fileInfo.pageCount} หน้า</p>
-              </div>
-              <div>
-                <p className="text-gray-600">หน้าสี</p>
-                <p className="text-gray-900 font-medium">{fileInfo.colorPages} หน้า</p>
-              </div>
-              <div>
-                <p className="text-gray-600">หน้าขาวดำ</p>
-                <p className="text-gray-900 font-medium">{fileInfo.bwPages} หน้า</p>
-              </div>
+              <p className="text-xs text-gray-400">PDF, DOC, DOCX</p>
             </div>
+            <input 
+              id="file-upload"
+              type="file" 
+              className="hidden"
+              accept=".pdf,.doc,.docx"
+              onChange={handleFileChange}
+              disabled={isAnalyzing}
+            />
+          </label>
+        </div>
+
+        {uploadError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded relative" role="alert">
+            <span className="block sm:inline">{uploadError}</span>
           </div>
-        </div>
-      )}
-
-      {analyzing && (
-        <div className="mt-4 text-center text-gray-600">
-          <p>กำลังวิเคราะห์เอกสาร...</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
-          <p>{error}</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

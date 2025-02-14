@@ -51,31 +51,26 @@ const ConfigurationPanel: React.FC = () => {
         <h2 className="text-xl font-bold text-gray-900">ตั้งค่ากระดาษ</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 text-gray-900">
         {paperTypes.map((paperType, index) => (
           <div 
             key={index} 
-            className="grid grid-cols-[1fr_1fr_1fr_auto] gap-4 items-center"
+            className="grid grid-cols-[1fr_1fr_auto] gap-4 items-center"
           >
             <input
               type="text"
               value={paperType.name}
               onChange={(e) => handlePaperTypeChange(index, 'name', e.target.value)}
-              className="w-full p-2 border-2 border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="w-full p-2 border-2 border-gray-300 rounded"
               placeholder="ชื่อประเภทกระดาษ"
             />
-            <input
-              type="color"
-              value={paperType.color}
-              onChange={(e) => handlePaperTypeChange(index, 'color', e.target.value)}
-              className="w-full p-1 border-2 border-gray-300 rounded"
-            />
+            
             <input
               type="number"
               step="0.01"
               value={paperType.cost}
               onChange={(e) => handlePaperTypeChange(index, 'cost', parseFloat(e.target.value))}
-              className="w-full p-2 border-2 border-gray-300 rounded focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="w-full p-2 border-2 border-gray-300 rounded"
               placeholder="ราคา"
             />
             {paperTypes.length > 1 && (
